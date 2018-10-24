@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="renderer" content="webkit">
+
+  <!--[if lt IE 9]>
+  <meta http-equiv="refresh" content="0;ie.html"/>
+  <![endif]-->
+  <title>管理查询 - ODMP控制中心</title>
+
+  <link rel="shortcut icon" href="../static/favicon.ico" th:href="@{/favicon.ico}">
+  <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet"
+        th:href="@{/css/bootstrap.min.css}">
+  <link href="../static/css/animate.css" rel="stylesheet"
+        th:href="@{/css/animate.css}">
+  <link href="../static/css/bootstrap-datepicker3.min.css" rel="stylesheet"
+        th:href="@{/css/bootstrap-datepicker3.min.css}">
+  <link href="../static/css/ui.jqgrid.css?0820" rel="stylesheet"
+        th:href="@{/css/ui.jqgrid.css}">
+
+  <!--<link href="../static/css/style.css?v=4.1.0" rel="stylesheet"-->
+  <!--th:href="@{/css/style.css}">-->
+
+  <script src="../static/js/jquery-1.10.2.min.js?v=2.1.4"
+          th:src="@{/js/jquery-1.10.2.min.js}"></script>
+
+  <script src="../static/js/bootstrap.min.js?v=3.3.6"
+          th:src="@{/js/bootstrap.min.js}"></script>
+  <script src="../static/js/bootstrap-datepicker.min.js"
+          th:src="@{/js/bootstrap-datepicker.min.js}"></script>
+  <script src="../static/js/locales/bootstrap-datepicker.zh-CN.min.js"
+          th:src="@{/js/locales/bootstrap-datepicker.zh-CN.min.js}"></script>
+
+  <!-- Peity -->
+  <script src="../static/js/jquery.peity.min.js"
+          th:src="@{/js/jquery.peity.min.js}"></script>
+  <!-- jqGrid -->
+  <script src="../static/js/plugins/jqgrid/i18n/grid.locale-cn.js?0820"
+          th:src="@{/js/grid.locale-cn.js}"></script>
+  <script src="../static/js/plugins/jqgrid/jquery.jqGrid.min.js?0820"
+          th:src="@{/js/jquery.jqGrid.min.js}"></script>
+  <script src="../static/js/content.js?v=1.0.0"
+          th:src="@{/js/content.js}"></script>
+
+  <script>
+    function F_Open_dialog() {
+      var rowid = $("#table_list_1").jqGrid("getGridParam", "selrow");
+      var rowData = $("#table_list_1").jqGrid('getRowData', rowid);
+      $("#data").val(JSON.stringify(rowData));
+      document.getElementById("btn_file").click();
+    }
+
+    function uploadfile() {
+      $("#form1").submit();
+    }
+
+    $(document).ready(function () {
+      init();
+    });
+    var url = "/";
+    var data = {
+      userId: $("#username").html()
+    };
+
+    function init() {
+      $.ajax({
+        type: "POST",
+        url: url + "intern/casebatches",
+        data: JSON.stringify(data),
+        contentType: 'application/json;charset=utf-8',
+        dataType: "json",
+        success: function (message) {
+          reload(message);
+        },
+        error: function (message) {
+          alert(JSON.stringify(message));
+        }
+      });
+    }
+
+    function reload(mydata) {
+      $("#table_list_1").jqGrid('clearGridData');  //清空表格
+      $.jgrid.defaults.styleUI = 'Bootstrap';
+      $("#table_list_1").jqGrid({
+        data: mydata,
+        datatype: "local",
+        height: 250,
+        autowidth: true,
+        shrinkToFit: true,
+        rowNum: 14,
+        rowList: [10, 20, 30],
+        colNames: ["id", '查询批号', '提交时间', '完成时间', '类型', '状态', '对方机构', '操作'],
+        colModel: [
+          {
+            name: 'id',
+            index: 'id',
+            width: 0,
+            sorttype: "int",
+            hidden: true,
+            key: true
+          },
+          {
+            name: 'batchId',
+            index: 'batchId',
+            width: 60,
+            sorttype: "int"
+          },
+          {
+            name: 'completeTime',
+            index: 'completeTime',
+            width: 90,
+            sorttype: "date",
+          },
+          {
+            name: 'updateTime',
+            index: 'updateTime',
+            width: 100
+          },
+          {
+            name: 'opreate',
+            index: 'opreate',
+            width: 80,
+            align: "left",
+            sorttype: "string",
+            formatter: statusFmatter
+          },
+          {
+            name: 'status',
+            index: 'status',
+            width: 80,
+            align: "left",
+            editable: true,
+            formatter: enteredKbFmatter
+          },
+          {
+            name: 'orgName',
+            index: 'orgName',
+            width: 80,
+            sortable: false
+          },
+          {
+            name: 'operate',
+            index: 'operate',
+            width: 120,
+            formatter: function (value, grid, rows, state) {
+              if (rows.status == 1) {
+                return '<a class="btn btn-default"  role="button" onclick="downloadOrUploadfile(1)">下载结果</a>'
+                    + '<a class="btn btn-default"  role="button" onclick="downloadOrUploadfile(1)">下载结果</a>'
+                    + '<a style="margin-left: 10px" onclick="downloadOrUploadfile(2)" class="btn btn-default" role="button">停止</a>';
+              } else {
+                return '<a class="btn btn-default"  role="button" onclick="downloadOrUploadfile(1)">下载结果</a>'
+                    + '<a style="margin-left: 10px" onclick="downloadOrUploadfile(2)" class="btn btn-default" role="button">上传文件</a>';
+              }
+            }
+          }
+        ],
+        pager: "#pager_list_1",
+        viewrecords: true,
+        caption: "",
+        hidegrid: false
+      });
+
+      function statusFmatter(cellvalue, options, rowObject) {
+        switch (cellvalue) {
+          case 0:
+            return "全部";
+          case 1:
+            return "查询我发起的";
+          case 2 :
+            return "查询我作为被查询的";
+          default :
+            return "全部";
+        }
+
+      }
+
+      function enteredKbFmatter(cellvalue, options, rowObject) {
+        switch (cellvalue) {
+          case 0:
+            return "上传完成";
+          case 1:
+            return "文件处理中";
+          case 2:
+            return "处理成功";
+          case 3:
+            return "处理失败";
+          case 4 :
+            return "查询关闭";
+          default :
+            return "文件处理中";
+        }
+
+      }
+
+      $(window).bind('resize', function () {
+        var width = $('.jqGrid_wrapper').width();
+        $('#table_list_1').setGridWidth(width);
+      });
+
+    }
+
+    function reviewGrid(newdata) {
+      $("#table_list_1").jqGrid('clearGridData');  //清空表格
+      $("#table_list_1").jqGrid('setGridParam', {  // 重新加载数据
+        datatype: 'local',
+        data: newdata,   //  newdata 是符合格式要求的需要重新加载的数据
+        page: 1
+      }).trigger("reloadGrid");
+    }
+
+    function queryBatches() {
+      var status = document.getElementById("categoryFilterPicker").selectedIndex;
+      var starttime = $('#start_time').val();
+      var endtime = $('#end_time').val();
+      var data = {
+        "userid": $("#username").html(),
+        "startTime": starttime,
+        "endTime": endtime,
+        "status": status
+      };
+      $.ajax({
+        type: "POST",
+        data: JSON.stringify(data),
+        url: url + "intern/casebatches",
+        contentType: 'application/json;charset=utf-8',
+        dataType: "json",
+        success: function (message) {
+          reviewGrid(message);
+        },
+        error: function (message) {
+          alert(JSON.stringify(message));
+        }
+      });
+    };
+
+    function downloadOrUploadfile(type) {
+      var rowid = $("#table_list_1").jqGrid("getGridParam", "selrow");
+      var rowData = $("#table_list_1").jqGrid('getRowData', rowid);
+
+      if (type == 1) {
+        $.ajax({
+          type: "POST",
+          data: JSON.stringify(rowData),
+          url: "/intern/download/file",
+          contentType: 'application/json',
+          success: function (data, message, request) {
+            var name = request.getResponseHeader("Content-Disposition");
+            var arr = name.split("=");
+            var filename = arr[arr.length - 1];
+            // 创建隐藏的可下载链接
+            var eleLink = document.createElement('a');
+            eleLink.download = filename;
+            eleLink.style.display = 'none';
+            // 字符内容转变成blob地址
+            var blob = new Blob([data]);
+            eleLink.href = URL.createObjectURL(blob);
+            // 触发点击
+            document.body.appendChild(eleLink);
+            eleLink.click();
+            // 然后移除
+            document.body.removeChild(eleLink);
+          },
+          error: function (message) {
+            alert(JSON.stringify(message));
+          }
+        });
+
+      } else if (type == 2) {
+        document.getElementById("select").click();
+      }
+    }
+
+    function showDialog() {
+      // 创建一个对话框
+      var $j = $.noConflict();    //让渡$给第一个实现它的库。
+      $j.dialog({
+        content: '对话框内容',
+        title: '对话框标题',
+        width: 300,
+        height: 100,
+        ok: function () {
+          alert('我是确定按钮，回调函数返回false时不会关闭对话框。');
+          return false;
+        },
+        cancel: function () {
+          alert('我是取消按钮');
+        },
+        lock: true
+      });
+    }
+  </script>
+</head>
+
+<body>
+
+<nav class="navbar navbar-inverse navbar-static-top" th:replace="fragments/header :: header">
+  <!-- ============================================================================ -->
+  <!-- This content is only used for static prototyping purposes (natural templates)-->
+  <!-- and is therefore entirely optional, as this markup fragment will be replaced -->
+  <!-- with "fragments/header.html" at runtime.                                     -->
+  <!-- ============================================================================ -->
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">ODMP控制中心</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">首页</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<label id="username" sec:authentication="name" style="visibility: hidden"></label>
+<!-- 获得当前用户的用户名 -->
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="page-header">我的查询
+        <small>选择日期或类型过滤</small>
+      </h1>
+    </div>
+  </div>
+
+
+  <div id="reg" style="display: none">
+    表单区域
+  </div>
+
+
+  <form>
+    <div class="form-group row">
+      <div class="col-md-3">
+        <label for="dateFilterPicker">日期：</label>
+        <div class="input-group input-daterange" id="dateFilterPicker">
+          <div class="input-group-addon">从</div>
+          <input type="text" id="start_time" class="form-control">
+          <div class="input-group-addon"> 到</div>
+          <input type="text" id="end_time" class="form-control">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <label for="categoryFilterPicker">类型：</label>
+        <select class="form-control" id="categoryFilterPicker">
+          <option>所有类型</option>
+          <option>我发起的</option>
+          <option>我收到的</option>
+        </select>
+      </div>
+      <div class="col-md-1 col-md-offset-6">
+        <a class="btn btn-default" onclick="showDialog()" href="#" role="button">过滤</a>
+      </div>
+      <script>
+        $('.input-daterange input').parent().datepicker({
+          todayHighlight: true,
+          autoclose: true, format: "yyyy-mm-dd", language: "zh-CN"
+        });
+      </script>
+    </div>
+  </form>
+
+  <form id="form1" style="display: none" enctype="multipart/form-data"
+        action="/intern/upload/result" method="post">
+    <input name="data" type="text" id="data">
+    <input type="file" id="btn_file" style="display:none" name="file" onchange="uploadfile()">
+    <button type="button" onclick="F_Open_dialog()" id="select">选择文件</button>
+  </form>
+
+  <div class="jqGrid_wrapper">
+    <table id="table_list_1"></table>
+    <div id="pager_list_1"></div>
+
+  </div>
+
+
+</div>
+
+
+<!-- Page-Level Scripts -->
+<footer th:replace="fragments/footer :: footer" class="text-center" style="margin-top:20px">&copy;
+  2017 Default Footer
+</footer>
+</body>
+
+</html>

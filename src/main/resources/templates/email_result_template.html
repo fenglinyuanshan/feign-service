@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>odmp邮件</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- use the font -->
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-size: 48px;
+    }
+  </style>
+  <style>
+    .title{ text-align:center;
+      color: #FFFFFF;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0;">
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse;">
+  <tr>
+    <td align="center" bgcolor="#2663E0" style="padding: 40px 0 30px 0;">
+      <p><span class="title"  th:text="ODMP系统邮件通知"></span></p>
+    </td>
+  </tr>
+  <tr>
+    <td bgcolor="#FFFFFF" style="padding: 40px 30px 40px 30px;">
+      <p><span>尊敬的</span><span th:text="${receviveName}"></span></p>
+      <p>贵公司在ODMP数据交换系统上收到查询返回的结果文件，请及时查看!</b></p>
+    </td>
+  </tr>
+  <tr>
+    <td bgcolor="#eaeaea" style="padding: 30px 30px 30px 30px;">
+      <p><span style="float:right">万数链</span></p>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

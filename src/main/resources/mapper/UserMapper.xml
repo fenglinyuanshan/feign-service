@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qiny.servicefeign.mapper.UserMapper">
+
+  <resultMap id="userResultMap" type="com.qiny.servicefeign.entity.User">
+    <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result column="name" property="name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    <result column="passwd" property="password" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    <result column="phone" property="phone" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    <result column="email" property="email" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    <result column="pub_key" property="publicKey" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    <result column="org_id" property="orgId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result column="update_dt" property="updateTime" jdbcType="TIMESTAMP"
+      javaType="java.sql.Timestamp"/>
+    <result column="updater_id" property="updaterId" jdbcType="INTEGER"
+      javaType="java.lang.Integer"/>
+    <result column="create_dt" property="createTime" jdbcType="TIMESTAMP"
+      javaType="java.sql.Timestamp"/>
+    <result column="creator_id" property="creatorId" jdbcType="INTEGER"
+      javaType="java.lang.Integer"/>
+  </resultMap>
+
+  <select id="findAllUsers" resultMap="userResultMap">
+    SELECT id, name, passwd, pub_key, org_id
+    FROM user
+  </select>
+
+  <select id="findUserById" parameterType="java.lang.Integer" resultMap="userResultMap">
+    SELECT id, name, passwd, pub_key, org_id, email
+    FROM user
+    WHERE id = #{id}
+  </select>
+
+  <select id="findUserByName" parameterType="java.lang.String" resultMap="userResultMap">
+    SELECT id, name, passwd, pub_key, org_id
+    FROM user
+    WHERE name = #{name}
+  </select>
+
+  <select id="findFirstUserByOrgId" parameterType="java.lang.Integer" resultMap="userResultMap">
+    SELECT id, name, passwd, pub_key, org_id, email
+    FROM user
+    WHERE org_id = #{orgId}
+    ORDER BY id ASC
+    LIMIT 1
+  </select>
+
+  <select id="findUserByOrgId" parameterType="java.lang.Integer" resultMap="userResultMap">
+    SELECT id, name, passwd, pub_key, org_id
+    FROM user
+    WHERE org_id = #{orgId}
+  </select>
+</mapper>

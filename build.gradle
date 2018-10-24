@@ -26,6 +26,7 @@ repositories {
 
 ext {
     springCloudVersion = 'Finchley.SR1'
+    bouncycastleVersion = '1.54'
 }
 
 dependencies {
@@ -40,5 +41,21 @@ dependencies {
     compile('org.projectlombok:lombok:1.18.2',
             'com.alibaba:fastjson:1.2.30',
             'com.google.guava:guava:19.0')
+
     compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.0.0.RELEASE'
+    compile('org.springframework.boot:spring-boot-starter-data-redis')
+    compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+    compile('org.springframework.boot:spring-boot-starter-security')
+    compile('org.mybatis.spring.boot:mybatis-spring-boot-starter:1.3.2')
+    compile('org.springframework.boot:spring-boot-starter-mail')
+    compile('org.thymeleaf.extras:thymeleaf-extras-springsecurity4')
+    // Embedded database for development
+    compile 'com.h2database:h2'
+    compile('mysql:mysql-connector-java:5.1.6')
+
+    // ECC/ECDSA key pair generation
+    compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+
+    //add fastJson
+    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
 }

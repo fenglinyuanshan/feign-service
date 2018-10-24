@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qiny.servicefeign.mapper.OrgMapper">
+
+  <resultMap id="orgResultMapper" type="com.qiny.servicefeign.entity.Org">
+    <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result column="name" property="name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    <result column="full_name" property="fullName" jdbcType="VARCHAR" javaType="java.lang.String"/>
+  </resultMap>
+
+  <select id="findAll" resultMap="orgResultMapper">
+    SELECT
+      id,
+      name,
+      full_name
+    FROM org
+  </select>
+
+  <select id="findAllExclude" resultMap="orgResultMapper">
+    SELECT
+      id,
+      name,
+      full_name
+    FROM org
+    WHERE id != #{id}
+  </select>
+
+  <select id="findOrgByName" resultType="com.qiny.servicefeign.entity.Org">
+    SELECT
+    id
+    FROM org
+    <where>
+      <if test="name != null">
+        name = #{name}
+      </if>
+    </where>
+  </select>
+
+  <insert id="insert">
+    INSERT INTO org (id, name, full_name)
+      VALUES (${id}, #{name}, #{fullName})
+  </insert>
+</mapper>

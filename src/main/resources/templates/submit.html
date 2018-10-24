@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="renderer" content="webkit">
+  <title>新建查询 - ODMP控制中心</title>
+  <!--[if lt IE 9]>
+  <meta http-equiv="refresh" content="0;ie.html"/>
+  <![endif]-->
+
+  <link rel="shortcut icon" href="favicon.ico">
+  <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet"
+        th:href="@{/css/bootstrap.min.css}">
+  <link href="../static/css/animate.css" rel="stylesheet"
+        th:href="@{/css/animate.css}">
+  <link href="../static/css/bootstrap-datepicker3.min.css" rel="stylesheet"
+        th:href="@{/css/bootstrap-datepicker3.min.css}">
+  <!--<link href="../static/css/style.css?v=4.1.0" rel="stylesheet"-->
+  <!--th:href="@{/css/style.css}">-->
+  <script src="../static/js/jquery-1.10.2.min.js?v=2.1.4"
+          th:src="@{/js/jquery-1.10.2.min.js}"></script>
+  <script src="../static/js/bootstrap.min.js?v=3.3.6" th:src="@{/js/bootstrap.min.js}"></script>
+  <script src="../static/js/bootstrap-datepicker.min.js"
+          th:src="@{/js/bootstrap-datepicker.min.js}"></script>
+  <script src="../static/js/locales/bootstrap-datepicker.zh-CN.min.js"
+          th:src="@{/js/locales/bootstrap-datepicker.zh-CN.min.js}"></script>
+  <script src="../static/js/jquery.form.js" th:src="@{/js/jquery.form.js}"></script>
+  <script>
+    function queryPost() {
+      event.preventDefault();
+      $('#querySubmit').ajaxSubmit(function (message) {
+        if (message === "File load success.") {
+          var box = document.getElementById("success");
+          box.style.display = "block";
+          setTimeout(function () {
+            box.style.display = "none";
+          }, 5000);
+        } else {
+          var box1 = document.getElementById("fail");
+          box1.style.display = "block";
+          setTimeout(function () {
+            box1.style.display = "none";
+          }, 5000);
+        }
+      });
+      $("input[type=reset]").trigger("click");
+      return false;
+    }
+  </script>
+</head>
+
+<body>
+
+<nav class="navbar navbar-inverse navbar-static-top" th:replace="fragments/header :: header">
+  <!-- ============================================================================ -->
+  <!-- This content is only used for static prototyping purposes (natural templates)-->
+  <!-- and is therefore entirely optional, as this markup fragment will be replaced -->
+  <!-- with "fragments/header.html" at runtime.                                     -->
+  <!-- ============================================================================ -->
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">ODMP控制中心</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">首页</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="page-header">交互查询
+        <small>方便地查询少量借款人数据</small>
+      </h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p>你可以通过ODMP控制中心交互查询单个或多个借款人信息。交互查询模式下查询支持异步或同步进行。发起交互查询的步骤如下：
+      <ol>
+        <li>准备借款人的基本信息，前三栏需为借款人的姓名、身份证号、手机号，如<code>张三,310000198001014444,13800000000</code>；</li>
+        <li>使用ODMP提供的密码工具将包含借款人信息散列化处理，复制处理后的哈希值；</li>
+        <li>在本页中粘贴借款人基本信息的哈希值，发起交互查询；</li>
+        <li>等待查询结果生成；</li>
+        <li>下载查询结果，使用ODMP提供的密码工具及私钥解密结果。</li>
+      </ol>
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <form enctype="multipart/form-data" action="/intern/upload/file" method="post"
+          onsubmit="return queryPost()" th:action="@{/intern/upload/file}" id="querySubmit">
+      <div class="form-group">
+        <label for="exampleInput">粘贴借款人基本信息的哈希值</label>
+        <textarea class="form-control" rows="3" id="exampleInput" name="textarea"></textarea>
+      </div>
+      <div>
+        <p class="alert alert-success" style="display: none" id="success">上传完成</p>
+        <p id="fail" class="alert alert-warning" style="display: none">上传失败</p>
+      </div>
+      <div class="form-group form-inline">
+        <label class="control-label">查询机构 </label>
+        <select class="form-control" name="cid">
+          <option>请选择机构</option>
+          <option th:each="list:${org_list}" th:value="${list.name}"
+                  th:text="${list.name}"></option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-default btn-primary">提交查询</button>
+      <input type="reset" name="reset" style="display: none;"/>
+    </form>
+  </div>
+
+  <footer th:replace="fragments/footer :: footer" class="text-center">&copy; 2017 Default Footer
+  </footer>
+</div>
+</body>
+
+</html>

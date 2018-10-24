@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qiny.servicefeign.mapper.BatchMapper">
+
+  <resultMap type="com.qiny.servicefeign.entity.Batch" id="batchList">
+    <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result property="batchId" column="batch_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result property="fileId" column="file_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result property="filePath" column="file_path" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    <result property="senderId" column="sender_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result property="receiverId" column="receiver_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    <result property="updateTime" column="update_dt" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp"/>
+    <result property="createTime" column="create_dt" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp"/>
+    <result property="orgName" column="name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+  </resultMap>
+
+  <sql id="batchColumns">
+    id,
+    batch_id,
+    file_id,
+    file_path,
+    sender_id,
+    receiver_id,
+    status,
+    create_dt,
+    update_dt
+  </sql>
+
+  <!-- 查询用户关联的所有批次的数目 -->
+  <select id="countBatchesByUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+    SELECT
+      COUNT(1)
+    FROM batch
+    WHERE
+      sender_id = #{id} OR receiver_id = #{id}
+  </select>
+
+  <!-- 查询用户关联的所有批次 -->
+  <select id="findBatchesByUserId" parameterType="java.lang.Integer" resultMap="batchList">
+    SELECT
+      <include refid="batchColumns"/>
+    FROM batch
+    WHERE
+      sender_id = #{id} OR receiver_id = #{id}
+  </select>
+
+  <!-- 查询用户关联的批次，启用日期范围和类型过滤，使用分页参数 -->
+  <select id="findBatchesByUserIdAndPagination" parameterType="map" resultMap="batchList">
+    SELECT
+      tmp.id,
+      tmp.batch_id,
+      tmp.file_id,
+      tmp.file_path,
+      tmp.sender_id,
+      tmp.receiver_id,
+      tmp.status,
+      tmp.create_dt,
+      tmp.update_dt,
+      o.name
+    FROM (
+      SELECT
+        id,
+        batch_id,
+        file_id,
+        file_path,
+        sender_id,
+        receiver_id,
+        status,
+        update_dt,
+        create_dt,
+        CASE WHEN sender_id = #{id} THEN receiver_id ELSE sender_id END AS counterpart_id
+      FROM batch
+      ) tmp
+      LEFT OUTER JOIN odmp.user u ON tmp.counterpart_id = u.id
+      LEFT OUTER JOIN org o ON u.org_id = o.id
+    WHERE 1=1
+      <if test="category==2">AND receiver_id = #{id}</if>
+      <if test="category==1">AND sender_id = #{id}</if>
+      <if test="category==0">AND (sender_id = #{id} OR receiver_id = #{id})</if>
+      <if test="start_dt!=null and end_dt!=null">AND CAST(tmp.create_dt AS DATE) BETWEEN #{start_dt} AND #{end_dt}</if>
+    ORDER BY tmp.create_dt DESC LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 查询用户关联的批次，启用日期范围和类型过滤 -->
+  <select id="findCaseCount" parameterType="map" resultType="java.lang.Integer">
+    SELECT
+     COUNT(1)
+    FROM batch
+    WHERE 1=1
+      <if test="category==2">AND receiver_id = #{id}</if>
+      <if test="category==1">AND sender_id = #{id}</if>
+      <if test="category==0">AND (sender_id = #{id} OR receiver_id = #{id})</if>
+      <if test="start_dt!=null and end_dt!=null">AND CAST(create_dt AS DATE) BETWEEN #{start_dt} AND #{end_dt}</if>
+  </select>
+
+  <select id="findAllBatches" resultMap="batchList">
+    SELECT
+      <include refid="batchColumns"/>
+    FROM batch
+  </select>
+
+  <select id="findMaxBatchId" resultType="java.lang.Integer">
+   SELECT MAX(batch_id) FROM batch
+  </select>
+
+  <select id="findCount" resultType="java.lang.Integer">
+   SELECT COUNT(*) FROM batch
+   </select>
+
+  <select id="findBatchByBatchId" resultMap="batchList">
+    SELECT
+      <include refid="batchColumns"/>
+    FROM batch
+    WHERE batch_id=#{batchId}
+  </select>
+
+  <update id="updateBatchStatusByBatchId" parameterType="com.qiny.servicefeign.entity.Batch">
+    update batch set status=#{status} where batch_id=#{batchId}
+  </update>
+
+  <insert id="insertBatch" parameterType="com.qiny.servicefeign.dto.BatchDTO">
+    INSERT INTO batch (batch_id, file_id, file_path, status, receiver_id, sender_id, update_dt, updater_id, create_dt, creator_id)
+    VALUES (#{batchId}, #{fileId}, #{filePath}, #{status}, #{receiverId}, #{senderId}, #{updateTime, jdbcType=TIMESTAMP}, #{updater}, #{completeTime, jdbcType=TIMESTAMP}, #{creator})
+  </insert>
+
+</mapper>

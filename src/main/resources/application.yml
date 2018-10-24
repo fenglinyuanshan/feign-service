@@ -2,8 +2,62 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
-server:
-  port: 8763
 spring:
   application:
     name: service-feign
+  profiles:
+    active: development
+  mail:
+    protocol: smtp
+    password: 0mniData
+    port: 465
+    username: notification@omnidata.io
+    host: smtp.exmail.qq.com
+    default-encoding: utf-8
+    subject: ODMP
+  thymeleaf:
+    cache: false
+    mode: HTML
+    prefix: classpath:/templates/
+    suffix: .html
+mybatis:
+  config-location: classpath:/mybatis.cfg.xml    # mybatis配置文件所在路径
+  type-aliases-package: com.qiny.servicefeign.entity           # 定义所有操作类的别名所在包
+  mapper-locations: classpath*:/mapper/*.xml
+server:
+  port: 8763
+  compression:
+    enabled: true
+---
+spring:
+  profiles: development
+  datasource:
+    url: jdbc:h2:mem:odmp;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;INIT=CREATE SCHEMA IF NOT EXISTS odmp\;SET SCHEMA odmp
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /console
+odmp:
+  configuration:
+    upload-path: ./build
+logging:
+  path: .
+  file: output.log
+---
+spring:
+  profiles: testing
+  datasource:
+    url: jdbc:mysql://47.100.253.96:3306/odmp?useUnicode=true&characterEncoding=utf-8
+    username: test
+    password: omnidata
+    driver-class-name: com.mysql.jdbc.Driver
+odmp:
+  configuration:
+    upload-path: /home/app/odmp/data
+logging:
+  path: /home/app/odmp/log
+  file: output.log
+

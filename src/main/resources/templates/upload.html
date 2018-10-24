@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="renderer" content="webkit">
+  <title>新建查询 - ODMP控制中心</title>
+  <!--[if lt IE 9]>
+  <meta http-equiv="refresh" content="0;ie.html"/>
+  <![endif]-->
+
+  <link rel="shortcut icon" href="favicon.ico">
+  <link href="../static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet"
+        th:href="@{/css/bootstrap.min.css}">
+  <link href="../static/css/animate.css" rel="stylesheet"
+        th:href="@{/css/animate.css}">
+  <link href="../static/css/bootstrap-datepicker3.min.css" rel="stylesheet"
+        th:href="@{/css/bootstrap-datepicker3.min.css}">
+  <!--<link href="../static/css/style.css?v=4.1.0" rel="stylesheet"-->
+  <!--th:href="@{/css/style.css}">-->
+  <script src="../static/js/jquery-1.10.2.min.js?v=2.1.4"
+          th:src="@{/js/jquery-1.10.2.min.js}"></script>
+  <script src="../static/js/bootstrap.min.js?v=3.3.6" th:src="@{/js/bootstrap.min.js}"></script>
+  <script src="../static/js/bootstrap-datepicker.min.js"
+          th:src="@{/js/bootstrap-datepicker.min.js}"></script>
+  <script src="../static/js/locales/bootstrap-datepicker.zh-CN.min.js"
+          th:src="@{/js/locales/bootstrap-datepicker.zh-CN.min.js}"></script>
+  <script src="../static/js/jquery.form.js" th:src="@{/js/jquery.form.js}"></script>
+  <script>
+    var ot;//上传开始时间
+    var oloaded;//已上传文件大小
+    var xhr;
+
+    function uploadFile() {
+      var fileObj = document.getElementsByName("file")[0].files[0]; //js获取文件对象
+      var url = "/intern/upload/file";
+      // FormData 对象
+      var form = new FormData();
+      form.append('file', fileObj); // 文件对象
+      form.append('cid', $("#select").val());
+      xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = callback;
+      xhr.onload = uploadComplete; //请求完成
+      xhr.onerror = uploadFailed; //请求失败
+      document.getElementById("progress").style.display = 'block';
+      xhr.upload.onprogress = progressFunction;//【上传进度调用方法实现】
+      xhr.upload.onloadstart = function () {//上传开始执行方法
+        ot = new Date().getTime();   //设置上传开始时间
+        oloaded = 0;//设置上传开始时，以上传的文件大小为0
+      };
+
+      //上传开始执行方法
+      xhr.onloadstart = function () {
+        console.log('开始上传');
+        ot = new Date().getTime();   //设置上传开始时间
+        oloaded = 0;//已上传的文件大小为0
+      };
+      xhr.upload.onprogress = progressFunction;//【上传进度调用方法实现】
+      //true为异步处理
+      xhr.open('post', url, true);
+      xhr.send(form);
+    }
+
+    function callback() {
+      if (xhr.readyState == 4) {
+        //判断http的交互是否成功
+        if (xhr.status == 200) {
+          var box = document.getElementById("success");
+          box.style.display = "block";
+          setTimeout(function () {
+            box.style.display = "none";
+          }, 5000);
+        } else {
+          var box1 = document.getElementById("fail");
+          box1.style.display = "block";
+          setTimeout(function () {
+            box1.style.display = "none";
+          }, 5000);
+        }
+      }
+    }
+
+    function progressFunction(evt) {
+      if (evt.lengthComputable) {
+        var completePercent = Math.round(evt.loaded / evt.total * 100)
+            + '%';
+        document.getElementById("progressBar").style.width = completePercent;
+        document.getElementById("progressBar").value = completePercent;
+        ot = new Date().getTime();          //重新赋值时间，用于下次计算
+        oloaded = evt.loaded;               //重新赋值已上传文件大小
+        document.getElementById("showInfo").innerHTML = '已上传：' + completePercent;
+      }
+    }
+
+    //上传成功后回调
+    function uploadComplete(evt) {
+      //服务断接收完文件返回的结果
+      console.log(evt);
+      console.log('上传完成')
+    };
+
+    //上传失败回调
+    function uploadFailed(evt) {
+      console.log('上传失败(上传数据最大不能超过100M) ' + evt.target.responseText);
+    }
+
+    function queryPost() {
+      event.preventDefault();
+      uploadFile();
+      $("input[type=reset]").trigger("click");
+      return false;
+    }
+  </script>
+</head>
+
+<body>
+
+<nav class="navbar navbar-inverse navbar-static-top" th:replace="fragments/header :: header">
+  <!-- ============================================================================ -->
+  <!-- This content is only used for static prototyping purposes (natural templates)-->
+  <!-- and is therefore entirely optional, as this markup fragment will be replaced -->
+  <!-- with "fragments/header.html" at runtime.                                     -->
+  <!-- ============================================================================ -->
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">ODMP控制中心</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">首页</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="page-header">批量查询
+        <small>一次查询大量的借款人数据</small>
+      </h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p>你可以通过ODMP控制中心提交批量查询，用以支持一次性查询几千甚至几万的借款人信息。批量查询模式下查询将异步进行，你将在查询完成后收到通知。发起批量查询的步骤如下：
+      <ol>
+        <li>准备借款人的基本信息，保存到CSV文件，前三栏需为借款人的姓名、身份证号、手机号，如<code>张三,310000198001014444,13800000000</code>；
+        </li>
+        <li>使用ODMP提供的密码工具将包含借款人信息的文件散列化处理，处理结果保存到查询参数文件；</li>
+        <li>在本页中上传处理过的查询参数文件，发起批量查询；</li>
+        <li>等待查询结果生成；</li>
+        <li>下载查询结果，使用ODMP提供的密码工具及私钥解密结果。</li>
+      </ol>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <form enctype="multipart/form-data" action="/intern/upload/file" method="post"
+          onsubmit="return queryPost()" th:action="@{/intern/upload/file}" id="querySubmit">
+      <div class="form-group">
+        <label for="exampleInputFile">上传借款人基本信息哈希值的文件</label>
+        <input type="file" id="exampleInputFile" name="file">
+      </div>
+      <div class="row"
+           style="padding-left: 0; padding-right: 0; margin-bottom: 0; display: none" id="progress">
+        <div class="progress">
+          <div id="progressBar" class="progress-bar progress-bar-success"
+               role="progressbar" aria-valuemin="0" aria-valuenow="0"
+               aria-valuemax="100" style="width: 0%"></div>
+        </div>
+        <!-- 显示上传百分比 -->
+        <div id="showInfo" class="col-lg-2">0%</div>
+      </div>
+      <br>
+      <div>
+        <p class="alert alert-success" style="display: none" id="success">上传完成</p>
+        <p id="fail" class="alert alert-warning" style="display: none">上传失败</p>
+      </div>
+      <br>
+      <div class="form-group form-inline">
+        <label class="control-label">查询机构 </label>
+        <select class="form-control" name="cid" id="select" th:id="select">
+          <option>请选择机构</option>
+          <option th:each="list:${org_list}" th:value="${list.name}"
+                  th:text="${list.name}"></option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-default btn-primary">提交查询</button>
+      <input type="reset" name="reset" style="display: none;"/>
+    </form>
+  </div>
+
+  <footer th:replace="fragments/footer :: footer" class="text-center">&copy; 2017 Default Footer
+  </footer>
+</div>
+</body>
+</html>
